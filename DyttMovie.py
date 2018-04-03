@@ -20,7 +20,6 @@ class Movie:
 
     def __str__(self):
         return '%s,\t%s分,\t%s' % (self.name, self.score, self.link)
-
     __repr__ = __str__
 
 
@@ -37,71 +36,47 @@ def get_movie_detail(url):
         result = {}
         result['电影译名'] = table.text
         result['详情链接'] = site + table.get('href')
-        result['下载链接'] = get_download_link(result['详情链接'])
+        soup = get_soup(result['详情链接'])
+        result['下载链接'] = get_download_link(soup)
+        result['豆瓣评分'] = get_score(soup)
         movie_list.append(result)
-    for i in movie_list[0:1]:
-        soup = get_soup(i['详情链接'])
-        print(soup)
-
-    # for table in tables:
-    #     print(table)
-    #     nameA = table.find('a', text=re.compile("《"))
-    #     lsit.append(nameA)
-    #     # print(nameA)
-    #     td = table.find('td', text=re.compile("IMD"))
-    #     if td is not None:
-    #         scoreStr = re.findall(r"评分 (.+?)/10", td.text)
-    #         if(len(scoreStr) > 0):
-    #             try:
-    #                 score = float(scoreStr[0])
-    #                 if(score > 8):
-    #                     name = nameA.text
-    #                     url = site + nameA['href']
-    #                     # print('url:', url)
-    #                     # print('title:', name)
-    #                     # print('score:', score)
-    #                     downloadLink = getDownloadLink(url)
-    #                     movie = Movie(name, url, score, downloadLink)
-    #                     resultList.append(movie)
-    #             except:
-    #                 print('error !!')
-    # return resultList
 
 
-def get_download_link(url):
-    soup = get_soup(url)
+def get_download_link(soup):
     return soup.find('td', attrs={"style": "WORD-WRAP: break-word"}).find('a')['href']
 
 
 def get_score(soup):
-    pass
+    score = re.findall(r"豆瓣评分　(.+?)/10", soup.text)
+    if len(score) > 0:
+        return str(score[0]) + '/10'
+    else:
+        return None
 
 
-def saveInfo(movieList):
+def save_info():
     fileObj = open('data.txt', 'a')
-    for movie in movieList:
+    for movie in movie_list:
         movie_str = str(movie)
         print('movie info:', movie_str)
         global lineNo
         fileObj.write('(' + str(lineNo) + ') ' + movie_str)
         fileObj.write('\n')
-        fileObj.write(
-            '————————————————————————————————————————————————————————————————————————————————————————————————')
+        fileObj.write('——————————————————————————————————')
         fileObj.write('\n')
         lineNo += 1
     fileObj.close()
 
 
-def getPageResource(url):
+def get_page_resource(url):
     get_movie_detail(url)
-
-    # if len(resultList) > 0:
-    #     saveInfo(resultList)
+    # if len(movie_list) > 0:
+    #     save_info()
 
 
 if __name__ == '__main__':
     for index in range(1, 2):
         url = 'http://www.ygdy8.net/html/gndy/dyzz/list_23_' + \
             str(index) + '.html'
-        getPageResource(url)
+        get_page_resource(url)
         time.sleep(5)
