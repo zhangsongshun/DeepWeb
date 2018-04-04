@@ -6,32 +6,26 @@ import time
 from bs4 import BeautifulSoup
 import re
 
+from requests import HTTPError
+
 site = 'http://www.ygdy8.net'
 lineNo = 1
 movie_list = []
 
 
-class Movie:
-    def __init__(self, name, url, score, link):
-        self.name = name
-        self.url = url
-        self.score = score
-        self.link = link
-
-    def __str__(self):
-        return '%s,\t%s分,\t%s' % (self.name, self.score, self.link)
-    __repr__ = __str__
-
-
 def get_soup(url):
-    r = requests.get(url)
-    r.encoding = 'gb18030'
-    return BeautifulSoup(r.text, "html.parser")
+    try:
+        r = requests.get(url)
+        r.encoding = 'gb18030'
+        return BeautifulSoup(r.text, "html.parser")
+    except HTTPError as e:
+        print(e)
 
 
 def get_movie_detail(url):
     soup = get_soup(url)
     tables = soup.select('.ulink')
+    print('为了防止反爬虫，设置间隔访问时间，请耐心等待...')
     for table in tables:
         result = {}
         result['电影译名'] = table.text
@@ -40,6 +34,7 @@ def get_movie_detail(url):
         result['下载链接'] = get_download_link(soup)
         result['豆瓣评分'] = get_score(soup)
         movie_list.append(result)
+        time.sleep(2)
 
 
 def get_download_link(soup):
@@ -55,27 +50,27 @@ def get_score(soup):
 
 
 def save_info():
-    fileObj = open('data.txt', 'a')
+    file = open('data.txt', 'a')
     for movie in movie_list:
         movie_str = str(movie)
         print('movie info:', movie_str)
         global lineNo
-        fileObj.write('(' + str(lineNo) + ') ' + movie_str)
-        fileObj.write('\n')
-        fileObj.write('——————————————————————————————————')
-        fileObj.write('\n')
+        file.write('(' + str(lineNo) + ') ' + movie_str)
+        file.write('\n')
+        file.write('——————————————————————————————————')
+        file.write('\n')
         lineNo += 1
-    fileObj.close()
+    file.close()
 
 
 def get_page_resource(url):
     get_movie_detail(url)
-    # if len(movie_list) > 0:
-    #     save_info()
+    if len(movie_list) > 0:
+        save_info()
 
 
 if __name__ == '__main__':
-    for index in range(1, 2):
+    for index in range(1, 5):
         url = 'http://www.ygdy8.net/html/gndy/dyzz/list_23_' + \
             str(index) + '.html'
         get_page_resource(url)
