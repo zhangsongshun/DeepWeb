@@ -22,11 +22,8 @@ def get_soup(url):
         print(e)
 
 
-def get_movie_detail(url):
-    soup = get_soup(url)
-    tables = soup.select('.ulink')
-    print('为了防止反爬虫，设置间隔访问时间，请耐心等待...')
-    for table in tables:
+def get_movie_detail(table):
+    try:
         result = {}
         result['电影译名'] = table.text
         result['详情链接'] = site + table.get('href')
@@ -34,7 +31,8 @@ def get_movie_detail(url):
         result['下载链接'] = get_download_link(soup)
         result['豆瓣评分'] = get_score(soup)
         movie_list.append(result)
-        time.sleep(2)
+    except Exception as e:
+        print(e)
 
 
 def get_download_link(soup):
@@ -64,14 +62,21 @@ def save_info():
 
 
 def get_page_resource(url):
-    get_movie_detail(url)
+    soup = get_soup(url)
+    tables = soup.select('.ulink')
+    print('为了防止反爬虫，设置间隔访问时间，请耐心等待...')
+    for table in tables:
+        get_movie_detail(table)
+        time.sleep(1)
 
 
 if __name__ == '__main__':
-    for index in range(1, 5):
+    for index in range(1, 2):
         url = 'http://www.ygdy8.net/html/gndy/dyzz/list_23_' + \
             str(index) + '.html'
         get_page_resource(url)
         time.sleep(5)
-    if len(movie_list) > 0:
-        save_info()
+    for i in movie_list:
+        print(i)
+    # if len(movie_list) > 0:
+    #     save_info()
