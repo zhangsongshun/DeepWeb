@@ -1,6 +1,7 @@
 """
 @张松顺
 time:2018-04-02
+新浪国内新闻爬虫
 """
 import json
 import sqlite3
