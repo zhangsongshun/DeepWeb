@@ -65,8 +65,6 @@ def save_info():
 
 def get_page_resource(url):
     get_movie_detail(url)
-    if len(movie_list) > 0:
-        save_info()
 
 
 if __name__ == '__main__':
@@ -75,3 +73,5 @@ if __name__ == '__main__':
             str(index) + '.html'
         get_page_resource(url)
         time.sleep(5)
+    if len(movie_list) > 0:
+        save_info()
